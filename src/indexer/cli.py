@@ -35,7 +35,7 @@ def main(argv: list[str] | None = None) -> int:
     settings = get_settings()
     pipeline = IndexPipeline(settings)
     count = pipeline.run(args.folder)
-    print(f"Indexed discovery pass complete: {count} file(s) under {args.folder}")
+    print(f"Extraction pass complete: {count} file(s) with text under {args.folder}")
     return 0
 
 

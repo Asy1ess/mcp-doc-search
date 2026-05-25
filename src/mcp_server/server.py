@@ -60,12 +60,15 @@ def get_document_content(path: str, max_chars: int = 8000) -> str:
         path: Absolute or indexed file path.
         max_chars: Truncate output to this many characters (default 8000).
     """
-    from src.extractors.router import extract_text
+    from src.extractors.router import ExtractionError, extract_text
 
     file_path = Path(path)
     if not file_path.is_file():
         return f"File not found: {path}"
-    doc = extract_text(file_path)
+    try:
+        doc = extract_text(file_path)
+    except ExtractionError as exc:
+        return f"Could not extract text: {exc}"
     text = doc.text[:max_chars]
     if len(doc.text) > max_chars:
         text += "\n\n[... truncated ...]"
