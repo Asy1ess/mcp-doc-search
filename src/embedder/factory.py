@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from src.config import Settings
+from src.embedder.local import LocalEmbedder
 
 
 class Embedder(Protocol):
@@ -14,11 +15,10 @@ class Embedder(Protocol):
 
 
 def get_embedder(settings: Settings) -> Embedder:
-    """Return an embedder for the configured provider.
-
-    MVP default: local ``bge-m3`` (see EMBEDDING_PROVIDER / EMBEDDING_MODEL).
-    """
+    provider = settings.embedding_provider.lower()
+    if provider == "local":
+        return LocalEmbedder(settings.embedding_model)
     raise NotImplementedError(
-        f"Embedding provider '{settings.embedding_provider}' is not wired yet. "
-        f"Planned model: {settings.embedding_model}"
+        f"Embedding provider '{settings.embedding_provider}' is not supported yet. "
+        f"Use EMBEDDING_PROVIDER=local (model: {settings.embedding_model})."
     )

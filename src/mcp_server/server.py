@@ -36,11 +36,18 @@ def search_documents(query: str, limit: int = 10) -> str:
     engine = SearchEngine(settings)
     hits = engine.search(query, limit=limit)
     if not hits:
-        return (
-            "No matching documents yet. "
-            "Run indexing first (reindex tool or `docker compose run --rm app "
-            "python -m src.indexer.cli --folder /documents`)."
-        )
+        from src.storage.chroma_store import ChromaIndexStore
+        from src.storage.sqlite_store import SqliteIndexStore
+
+        chroma = ChromaIndexStore(settings)
+        sqlite = SqliteIndexStore(settings.sqlite_path)
+        if chroma.count == 0:
+            return (
+                "No indexed documents yet. Run reindex or: "
+                "`docker compose run --rm app python -m src.indexer.cli "
+                "--folder /documents/test -v`"
+            )
+        return "No documents matched your query. Try different keywords."
     payload = [
         {
             "path": str(h.path),

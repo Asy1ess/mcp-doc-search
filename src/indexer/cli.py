@@ -49,11 +49,11 @@ def main(argv: list[str] | None = None) -> int:
     settings = get_settings()
     pipeline = IndexPipeline(settings)
     count = pipeline.run(folder)
-    print(f"Extraction pass complete: {count} file(s) with text under {folder}")
+    print(f"Indexing complete: {count} file(s) newly indexed under {folder}")
     if count == 0:
         print(
-            "No supported files found (.pdf, .docx, .xlsx, .pptx, .txt, .md, .hwpx). "
-            "Add test files or check the mounted path.",
+            "No new files indexed (folder empty, unsupported types, or all unchanged). "
+            "First run downloads the embedding model and may take several minutes.",
             file=sys.stderr,
         )
     return 0

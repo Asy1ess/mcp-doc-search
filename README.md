@@ -144,8 +144,17 @@ docker compose --profile dev run --rm dev
 
 ### 4. 초기 색인
 
+첫 실행 시 **bge-m3 모델 다운로드**로 시간이 걸릴 수 있습니다. 같은 파일은 해시가 같으면 건너뜁니다.
+
 ```bash
-docker compose run --rm app python -m src.indexer.cli --folder /documents
+docker compose build
+docker compose run --rm app python -m src.indexer.cli --folder /documents/test -v
+```
+
+### 4-1. 의미 검색 테스트
+
+```bash
+docker compose run --rm app python -m src.search.cli "예산 관련 문서"
 ```
 
 ### 5. Claude Desktop 연동
@@ -218,9 +227,9 @@ pytest tests/ -q
 
 | 단계 | 내용 | 상태 |
 |------|------|------|
-| 0 | 프로젝트 기반 설정 (Git, Docker Compose, `.env`) | 진행 중 |
-| 1 | 색인 엔진 (수집 → 추출 → 청킹 → 임베딩) | 예정 |
-| 2 | 의미 검색 | 예정 |
+| 0 | 프로젝트 기반 설정 (Git, Docker Compose, `.env`) | 완료 |
+| 1 | 색인 엔진 (수집 → 추출 → 청킹 → 임베딩) | 완료 |
+| 2 | 의미 검색 | 완료 |
 | 3 | MCP 서버 레이어 | 예정 |
 | 4 | Claude Desktop 연동 | 예정 |
 | 5 | 하이브리드 검색 · 증분 색인 · 안정성 | 확장 |
