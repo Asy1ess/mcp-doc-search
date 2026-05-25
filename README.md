@@ -167,37 +167,41 @@ docker compose run --rm app python -m src.indexer.cli --folder /documents/test -
 docker compose run --rm app python -m src.search.cli "예산 관련 문서"
 ```
 
-### 5. Claude Desktop 연동
+### 5. MCP 호스트 연동 (Claude Desktop / Cursor)
 
-MCP는 stdio로 동작하므로, Claude Desktop 설정에서 **Docker Compose로 서버 프로세스를 실행**합니다.
+**둘 중 하나만 써도 되고, 둘 다 써도 됩니다.** 같은 Docker 이미지·같은 `data/` 색인을 공유합니다.
 
-**Windows** — `%APPDATA%\Claude\claude_desktop_config.json`
+| 사용 환경 | 설정 파일 | 예시 |
+|-----------|-----------|------|
+| Claude Desktop만 | `%APPDATA%\Claude\claude_desktop_config.json` | [`config/claude_desktop_config.example.json`](config/claude_desktop_config.example.json) |
+| Cursor만 | `~/.cursor/mcp.json` | [`config/cursor-mcp.example.json`](config/cursor-mcp.example.json) |
+| Cursor + Notion 등 기존 MCP | 위 `mcp.json`에 블록 **추가** | [`config/cursor-mcp-with-notion.example.json`](config/cursor-mcp-with-notion.example.json) |
+
+자세한 병합 방법: [`config/README.md`](config/README.md)
+
+공통 설정 (경로는 본인 PC에 맞게 수정):
 
 ```json
-{
-  "mcpServers": {
-    "mcp-doc-search": {
-      "command": "docker",
-      "args": [
-        "compose",
-        "-f",
-        "C:\\path\\to\\mcp-doc-search\\docker-compose.yml",
-        "run",
-        "--rm",
-        "-T",
-        "app"
-      ]
-    }
-  }
+"mcp-doc-search": {
+  "command": "docker",
+  "args": [
+    "compose",
+    "-f",
+    "C:\\Users\\user1\\mcp-doc-search\\docker-compose.yml",
+    "run",
+    "--rm",
+    "-T",
+    "app"
+  ]
 }
 ```
 
 - `-T`: stdio 연결용 (TTY 비활성화)
-- `docker-compose.yml` 경로는 본인 환경에 맞게 수정
+- 호스트 앱 **재시작** 후 도구 목록에 `search_documents` 등이 보이는지 확인
 
-Claude Desktop을 재시작한 뒤, 예를 들어 다음과 같이 질의할 수 있습니다.
+예시 질의:
 
-> "프로젝트 제안서 관련 문서 찾아줘"
+> "보안 관련 문서 찾아줘"
 
 ### 테스트
 
@@ -241,7 +245,7 @@ pytest tests/ -q
 | 1 | 색인 엔진 (수집 → 추출 → 청킹 → 임베딩) | 완료 |
 | 2 | 의미 검색 | 완료 |
 | 3 | MCP 서버 레이어 | 예정 |
-| 4 | Claude Desktop 연동 | 예정 |
+| 4 | Claude Desktop / Cursor MCP 연동 | 설정 예시 완료 (각자 적용) |
 | 5 | 하이브리드 검색 · 증분 색인 · 안정성 | 확장 |
 | 6 | 테스트 · 문서화 | 예정 |
 

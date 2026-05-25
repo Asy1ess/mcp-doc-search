@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "Notion": {
+      "url": "https://mcp.notion.com/mcp",
+      "headers": {}
+    },
+    "mcp-doc-search": {
+      "command": "docker",
+      "args": [
+        "compose",
+        "-f",
+        "C:\\Users\\user1\\mcp-doc-search\\docker-compose.yml",
+        "run",
+        "--rm",
+        "-T",
+        "app"
+      ]
+    }
+  }
+}
