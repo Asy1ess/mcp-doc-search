@@ -32,10 +32,30 @@ def main(argv: list[str] | None = None) -> int:
         format="%(levelname)s %(name)s: %(message)s",
     )
 
+    folder = args.folder
+    if not folder.exists():
+        print(
+            f"ERROR: Folder does not exist inside the container: {folder}\n"
+            "Check DOCUMENTS_PATH in .env — /documents maps to that host folder.\n"
+            "Example: DOCUMENTS_PATH=C:\\Users\\user1\\Documents and "
+            "--folder /documents/test",
+            file=sys.stderr,
+        )
+        return 1
+    if not folder.is_dir():
+        print(f"ERROR: Not a directory: {folder}", file=sys.stderr)
+        return 1
+
     settings = get_settings()
     pipeline = IndexPipeline(settings)
-    count = pipeline.run(args.folder)
-    print(f"Extraction pass complete: {count} file(s) with text under {args.folder}")
+    count = pipeline.run(folder)
+    print(f"Extraction pass complete: {count} file(s) with text under {folder}")
+    if count == 0:
+        print(
+            "No supported files found (.pdf, .docx, .xlsx, .pptx, .txt, .md, .hwpx). "
+            "Add test files or check the mounted path.",
+            file=sys.stderr,
+        )
     return 0
 
 
