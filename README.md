@@ -180,6 +180,12 @@ Claude Desktop을 재시작한 뒤, 예를 들어 다음과 같이 질의할 수
 
 > "프로젝트 제안서 관련 문서 찾아줘"
 
+### 테스트
+
+```bash
+docker compose run --rm app pytest tests/ -q
+```
+
 ### 로컬 venv (선택)
 
 Docker 없이 디버깅할 때만 사용합니다.
@@ -188,6 +194,7 @@ Docker 없이 디버깅할 때만 사용합니다.
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
+pytest tests/ -q
 ```
 
 ---
