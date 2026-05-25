@@ -131,10 +131,20 @@ CHUNK_OVERLAP=100
 
 ### 3. 이미지 빌드 및 컨테이너 기동
 
+코드를 수정·`git pull` 한 뒤에는 **반드시 이미지를 다시 빌드**하세요. 예전 이미지를 쓰면 `extracted` 로그만 나오고 검색 CLI가 없을 수 있습니다.
+
 ```bash
 docker compose build
 docker compose up -d
 ```
+
+빌드 반영 확인:
+
+```bash
+docker compose run --rm app ls src/search/cli.py
+```
+
+`No module named src.search.cli` 가 나오면 → `docker compose build` 가 안 된 상태입니다.
 
 개발용 셸이 필요하면:
 
