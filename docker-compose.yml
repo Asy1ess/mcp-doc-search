@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    container_name: mcp-doc-search
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ${DOCUMENTS_PATH:-./documents}:/documents:ro
+    stdin_open: true
+    tty: true
+    # MCP uses stdio; keep container attachable for Claude Desktop / docker compose run
+    command: ["python", "-m", "src.mcp_server.server"]
+
+  dev:
+    build: .
+    profiles: ["dev"]
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ${DOCUMENTS_PATH:-./documents}:/documents:ro
+      - .:/app
+    stdin_open: true
+    tty: true
+    command: ["bash"]
+    working_dir: /app

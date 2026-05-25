@@ -60,6 +60,8 @@ mcp-doc-search/
 │   └── search/           # 유사도 검색 · 결과 집계
 ├── tests/
 ├── data/                 # ChromaDB · SQLite (gitignore)
+├── Dockerfile
+├── docker-compose.yml
 ├── .env.example
 ├── requirements.txt
 └── README.md
@@ -71,7 +73,8 @@ mcp-doc-search/
 
 | 영역 | 선택 | 비고 |
 |------|------|------|
-| 언어 | Python 3.10+ | |
+| 언어 | Python 3.10+ | Docker 이미지: 3.11-slim |
+| 실행 환경 | Docker Compose | 개발·실행 환경 통일 |
 | MCP | [FastMCP](https://github.com/jlowin/fastmcp) | stdio 전송 |
 | 벡터 DB | ChromaDB | 로컬 영구 저장 |
 | 메타 DB | SQLite | 파일 경로·해시·색인 시각 |
@@ -95,8 +98,10 @@ mcp-doc-search/
 
 ### 요구 사항
 
-- Python 3.10 이상
+- [Docker](https://www.docker.com/) 및 Docker Compose v2
 - (로컬 임베딩 사용 시) 충분한 RAM — `bge-m3` 기준 약 2GB+
+
+로컬 Python venv 없이 **Docker Compose**로 실행 환경을 맞춥니다.
 
 ### 1. 저장소 클론
 
@@ -105,54 +110,47 @@ git clone https://github.com/Asy1ess/mcp-doc-search.git
 cd mcp-doc-search
 ```
 
-### 2. 가상환경 및 의존성
-
-```bash
-python -m venv .venv
-
-# Windows
-.venv\Scripts\activate
-
-# macOS / Linux
-source .venv/bin/activate
-
-pip install -r requirements.txt
-```
-
-### 3. 환경 변수 설정
+### 2. 환경 변수 설정
 
 ```bash
 cp .env.example .env
 ```
 
-`.env` 예시:
+`.env`에서 `DOCUMENTS_PATH`를 PC의 문서 폴더 경로로 수정합니다.
 
 ```env
-# 임베딩: local | openai | ...
+DOCUMENTS_PATH=C:\Users\you\Documents
 EMBEDDING_PROVIDER=local
 EMBEDDING_MODEL=BAAI/bge-m3
-
-# 색인 데이터 저장 경로
-CHROMA_PERSIST_DIR=./data/chroma
-SQLITE_PATH=./data/index.db
-
-# 기본 색인 대상 폴더 (쉼표 구분)
-INDEX_FOLDERS=C:\Users\you\Documents
-
-# 청킹
+CHROMA_PERSIST_DIR=/app/data/chroma
+SQLITE_PATH=/app/data/index.db
+INDEX_FOLDERS=/documents
 CHUNK_SIZE=800
 CHUNK_OVERLAP=100
+```
+
+### 3. 이미지 빌드 및 컨테이너 기동
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+개발용 셸이 필요하면:
+
+```bash
+docker compose --profile dev run --rm dev
 ```
 
 ### 4. 초기 색인
 
 ```bash
-python -m src.indexer.cli --folder "C:\Users\you\Documents"
+docker compose run --rm app python -m src.indexer.cli --folder /documents
 ```
 
 ### 5. Claude Desktop 연동
 
-`claude_desktop_config.json`에 서버를 등록합니다.
+MCP는 stdio로 동작하므로, Claude Desktop 설정에서 **Docker Compose로 서버 프로세스를 실행**합니다.
 
 **Windows** — `%APPDATA%\Claude\claude_desktop_config.json`
 
@@ -160,20 +158,37 @@ python -m src.indexer.cli --folder "C:\Users\you\Documents"
 {
   "mcpServers": {
     "mcp-doc-search": {
-      "command": "C:\\path\\to\\mcp-doc-search\\.venv\\Scripts\\python.exe",
-      "args": ["-m", "src.mcp_server.server"],
-      "env": {
-        "CHROMA_PERSIST_DIR": "C:\\path\\to\\mcp-doc-search\\data\\chroma",
-        "SQLITE_PATH": "C:\\path\\to\\mcp-doc-search\\data\\index.db"
-      }
+      "command": "docker",
+      "args": [
+        "compose",
+        "-f",
+        "C:\\path\\to\\mcp-doc-search\\docker-compose.yml",
+        "run",
+        "--rm",
+        "-T",
+        "app"
+      ]
     }
   }
 }
 ```
 
+- `-T`: stdio 연결용 (TTY 비활성화)
+- `docker-compose.yml` 경로는 본인 환경에 맞게 수정
+
 Claude Desktop을 재시작한 뒤, 예를 들어 다음과 같이 질의할 수 있습니다.
 
 > "프로젝트 제안서 관련 문서 찾아줘"
+
+### 로컬 venv (선택)
+
+Docker 없이 디버깅할 때만 사용합니다.
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
 
 ---
 
@@ -196,7 +211,7 @@ Claude Desktop을 재시작한 뒤, 예를 들어 다음과 같이 질의할 수
 
 | 단계 | 내용 | 상태 |
 |------|------|------|
-| 0 | 프로젝트 기반 설정 (Git, 구조, `.env`) | 진행 중 |
+| 0 | 프로젝트 기반 설정 (Git, Docker Compose, `.env`) | 진행 중 |
 | 1 | 색인 엔진 (수집 → 추출 → 청킹 → 임베딩) | 예정 |
 | 2 | 의미 검색 | 예정 |
 | 3 | MCP 서버 레이어 | 예정 |
